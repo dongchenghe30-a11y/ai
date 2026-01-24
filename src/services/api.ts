@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
 // 直接使用后端 URL，不使用环境变量
-const API_BASE_URL = 'https://holy-glade-27cb.dongchenghe30.workers.dev';
+const API_BASE_URL = 'https://ai-resume-builder.dongchenghe30.workers.dev';
 
 export interface AIAnalysisRequest {
   jobDescription: string;
@@ -48,7 +48,7 @@ const buildUrl = (path: string): string => {
 };
 
 export const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: '',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -56,15 +56,15 @@ export const api = axios.create({
 });
 
 // 添加日志以便调试
-api.interceptors.request.use(config => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   console.log('API Request:', config.baseURL + config.url, config.data);
   return config;
 });
 
 // 响应拦截器 - 统一错误处理
 api.interceptors.response.use(
-  response => response,
-  error => {
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
     console.error('API Error:', error.message, error.config?.url);
 
     // 404 错误特殊处理
@@ -96,11 +96,12 @@ const withRetry = async <T>(
       return await fn();
     } catch (error) {
       lastError = error as Error;
+      const axiosError = error as AxiosError;
       console.warn(`Retry ${i + 1}/${maxRetries} failed:`, error);
 
       // 对于 4xx 错误（客户端错误），不重试
-      if (error.response?.status && error.response.status >= 400 && error.response.status < 500) {
-        console.error('Client error, not retrying:', error.response.status);
+      if (axiosError.response?.status && axiosError.response.status >= 400 && axiosError.response.status < 500) {
+        console.error('Client error, not retrying:', axiosError.response.status);
         throw error; // 直接抛出，不重试
       }
 
