@@ -1,2 +1,9 @@
-/*  /index.html  200
-/api/*  https://your-worker.workers.dev/api/:splat  200
+# 静态文件不走重定向
+/ads.txt /ads.txt 200
+/Ads.txt /ads.txt 200
+
+# API 代理
+/api/* https://your-worker.workers.dev/api/:splat 200
+
+# SPA 路由（其他所有请求）
+/* /index.html 200
